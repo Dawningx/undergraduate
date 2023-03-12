@@ -6,10 +6,15 @@ import (
 
 	"github.com/falcosecurity/plugin-sdk-go/pkg/sdk"
 	"github.com/falcosecurity/plugin-sdk-go/pkg/sdk/plugins"
-	"github.com/falcosecurity/plugin-sdk-go/pkg/sdk/symbols/extract"
+	"github.com/falcosecurity/plugin-sdk-go/pkg/sdk/plugins/source"
+	"github.com/alecthomas/jsonschema"
 )
 
 const pluginName = "dpufalco"
+
+type PluginConfig struct {
+	Jitter uint64 `json:"jitter" jsonschema:"title:Sample jitter,description=empty,default=0"`
+}
 
 type Plugin struct {
 	plugins.BasePlugin
@@ -28,8 +33,8 @@ func (k *Plugin) Info() *plugins.Info {
 }
 
 func (k *Plugin) Init(cfg string) error {
-	k.Config.Reset()
-	err := json.Unmarshal([]byte(cfg), &k.Config)
+	// k.config.Reset()
+	err := json.Unmarshal([]byte(cfg), &k.config)
 	if err != nil {
 		return err
 	}

@@ -15,8 +15,9 @@ const (
 	dpu_port = 5000
 )
 
-func (k *Plugin) Open(param String) (source.Instance, error) {
+func (k *Plugin) Open(param string) (source.Instance, error) {
 	evtChan := make(chan source.PushEvent)
+	res := &source.PushEvent{}
 
 	address := dpu_ip + ":" + strconv.Itoa(dpu_port)
 	addr, err := net.ResolveUDPAddr("udp", address)
@@ -35,7 +36,8 @@ func (k *Plugin) Open(param String) (source.Instance, error) {
 		return nil, err
 	}
 
-	evtChan.Data = data
+	res.Data = data
+	evtChan <- *res
 		
 	return source.NewPushInstance(evtChan, source.WithInstanceClose(func() {  conn.Close()  }))
 }
