@@ -20,12 +20,12 @@ import (
 	"github.com/falcosecurity/plugin-sdk-go/pkg/sdk/plugins"
 	"github.com/falcosecurity/plugin-sdk-go/pkg/sdk/plugins/extractor"
 	"github.com/falcosecurity/plugin-sdk-go/pkg/sdk/plugins/source"
-	"github.com/dawningx/undergraduate/dpufalco/pkg/dpufalco"
+	"github.com/Dawningx/undergraduate/dpufalco/pkg/dpufalco"
 )
 
 func init() {
 	plugins.SetFactory(func() plugins.Plugin {
-		p := &github.Plugin{}
+		p := &dpufalco.Plugin{}
 		source.Register(p)
 		extractor.Register(p)
 		return p
