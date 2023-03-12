@@ -2,11 +2,9 @@ package dpufalco
 
 
 import (
-	"strings"
 	"net"
 	"strconv"
 
-	"github.com/falcosecurity/plugin-sdk-go/pkg/sdk"
 	"github.com/falcosecurity/plugin-sdk-go/pkg/sdk/plugins/source"
 )
 
@@ -31,9 +29,9 @@ func (k *Plugin) Open(param string) (source.Instance, error) {
 	}
 
 	data := make([]byte, 1024)
-	n, sendaddr, err := conn.ReadFromUDP(data)
-	if err != nil {
-		return nil, err
+	_, _, err2 := conn.ReadFromUDP(data)
+	if err2 != nil {
+		return nil, err2
 	}
 
 	res.Data = data

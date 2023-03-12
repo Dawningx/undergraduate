@@ -26,7 +26,6 @@ func init() {
 	plugins.SetFactory(func() plugins.Plugin {
 		p := &dpufalco.Plugin{}
 		source.Register(p)
-		extractor.Register(p)
 		return p
 	})
 }
