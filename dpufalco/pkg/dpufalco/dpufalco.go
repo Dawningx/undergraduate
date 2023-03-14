@@ -26,7 +26,7 @@ func (k *Plugin) Info() *plugins.Info {
 		Name:        pluginName,
 		Description: "Set up a UDP connection and listen to it",
 		Contact:     "github.com/Dawningx/undergraduate",
-		Version:     "0.1.0",
+		Version:     "1.0.0",
 		EventSource: "dpufalco",
 	}
 }

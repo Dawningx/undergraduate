@@ -4,38 +4,42 @@ package dpufalco
 import (
 	"net"
 	"strconv"
+	// "fmt"
 
 	"github.com/falcosecurity/plugin-sdk-go/pkg/sdk/plugins/source"
 )
 
 const (
-	dpu_ip = "192.168.1.101"
+	dpu_ip = "127.0.0.1"
 	dpu_port = 5000
 )
 
 func (k *Plugin) Open(param string) (source.Instance, error) {
 	evtChan := make(chan source.PushEvent)
-	res := &source.PushEvent{}
 
-	address := dpu_ip + ":" + strconv.Itoa(dpu_port)
-	addr, err := net.ResolveUDPAddr("udp", address)
-	if err != nil {
-		return nil, err
-	}
+	go func() {
+		address := dpu_ip + ":" + strconv.Itoa(dpu_port)
+		addr, err := net.ResolveUDPAddr("udp", address)
+		if err != nil {
+			evtChan <- source.PushEvent{Err: err}
+		}
 
-	conn, err := net.ListenUDP("udp", addr)
-	if err != nil {
-		return nil, err
-	}
+		conn, err := net.ListenUDP("udp", addr)
+		if err != nil {
+			evtChan <- source.PushEvent{Err: err}
+		}
 
-	data := make([]byte, 1024)
-	_, _, err2 := conn.ReadFromUDP(data)
-	if err2 != nil {
-		return nil, err2
-	}
-
-	res.Data = data
-	evtChan <- *res
+		data := make([]byte, 1024)
+		_, _, err2 := conn.ReadFromUDP(data)
 		
-	return source.NewPushInstance(evtChan, source.WithInstanceClose(func() {  conn.Close()  }))
+		defer conn.Close()
+		if err2 != nil {
+			evtChan <- source.PushEvent{Err: err2}
+		} else {
+			evtChan <- source.PushEvent{Data: data}
+		}
+	}()
+
+		
+	return source.NewPushInstance(evtChan, source.WithInstanceClose(func() {}))
 }
