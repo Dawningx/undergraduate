@@ -4,7 +4,7 @@ package dpufalco
 import (
 	"net"
 	"strconv"
-	// "fmt"
+	"fmt"
 
 	"github.com/falcosecurity/plugin-sdk-go/pkg/sdk/plugins/source"
 )
@@ -29,14 +29,18 @@ func (k *Plugin) Open(param string) (source.Instance, error) {
 			evtChan <- source.PushEvent{Err: err}
 		}
 
-		data := make([]byte, 1024)
-		_, _, err2 := conn.ReadFromUDP(data)
-		
+		fmt.Println("UDP Socket Start Successfully!")
 		defer conn.Close()
-		if err2 != nil {
-			evtChan <- source.PushEvent{Err: err2}
-		} else {
-			evtChan <- source.PushEvent{Data: data}
+		for {
+			data := make([]byte, 1024)
+			_, _, err2 := conn.ReadFromUDP(data)
+			fmt.Println(string(data))
+		
+			if err2 != nil {
+				evtChan <- source.PushEvent{Err: err2}
+			} else {
+				evtChan <- source.PushEvent{Data: data}
+			}
 		}
 	}()
 

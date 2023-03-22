@@ -3,7 +3,6 @@ package dpufalco
 
 import (
 	"strings"
-	"fmt"
 
 	"github.com/falcosecurity/plugin-sdk-go/pkg/sdk"
 )
@@ -46,11 +45,12 @@ func GetField(data string, field string) (bool, string) {
 
 
 func (k *Plugin) Extract(req sdk.ExtractRequest, evt sdk.EventReader) error {
+	// fmt.Println("Extract")
 	return k.ExtractFromEvent(req, evt)
 }
 
 func (k *Plugin) ExtractFromEvent(req sdk.ExtractRequest, evt sdk.EventReader) error {
-	data := []byte{0}
+	data := make([]byte, 1024)
 	reader := evt.Reader()
 	_, err := reader.Read(data)
 	if err != nil {
@@ -58,7 +58,7 @@ func (k *Plugin) ExtractFromEvent(req sdk.ExtractRequest, evt sdk.EventReader) e
 	}
 
 	evtStr := string(data)
-	// return fmt.Errorf(evtStr)
+	// fmt.Printf("data=%s\n", data)
 	
 	present, value := GetField(evtStr, req.Field())
 	if present {
