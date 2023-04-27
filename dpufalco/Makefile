@@ -29,7 +29,7 @@ clean:
 	@rm -f $(OUTPUT)
 
 $(OUTPUT): 
-	@$(GODEBUGFLAGS) $(GO) build -buildmode=c-shared -o $(OUTPUT) ./plugin
+	$(GO) build -buildmode=c-shared -o $(OUTPUT) ./plugin
 
 readme:
 	@$(READMETOOL) -p ./$(OUTPUT) -f README.md

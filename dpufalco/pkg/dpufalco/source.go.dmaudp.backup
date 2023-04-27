@@ -1,0 +1,57 @@
+package dpufalco
+
+
+import (
+	"net"
+	"strconv"
+	"fmt"
+
+	"github.com/falcosecurity/plugin-sdk-go/pkg/sdk/plugins/source"
+)
+
+const (
+	dpu_ip = "127.0.0.1"
+	dpu_port = 5000
+)
+
+func (k *Plugin) Open(param string) (source.Instance, error) {
+	evtChan := make(chan source.PushEvent)
+	// sum_c := 0
+
+	go func() {
+		address := dpu_ip + ":" + strconv.Itoa(dpu_port)
+		addr, err := net.ResolveUDPAddr("udp", address)
+		if err != nil {
+			evtChan <- source.PushEvent{Err: err}
+		}
+
+		conn, _ := net.ListenUDP("udp", addr)
+		err = conn.SetReadBuffer(1024*1024*128)
+		if err != nil {
+			evtChan <- source.PushEvent{Err: err}
+		}
+		// i := 0
+
+		fmt.Println("UDP Socket Start Successfully!")
+		defer conn.Close()
+		for {
+			data := make([]byte, 256)
+			_, _, err2 := conn.ReadFromUDP(data)
+			// sum_c += 1
+			// fmt.Println(sum_c)
+			// fmt.Println(string(data))
+			// i += 1
+			// fmt.Println(i)
+
+			if err2 != nil {
+				evtChan <- source.PushEvent{Err: err2}
+			} else {
+				evtChan <- source.PushEvent{Data: data}
+				// fmt.Println("Receive 1")
+			}
+		}
+	}()
+
+		
+	return source.NewPushInstance(evtChan, source.WithInstanceClose(func() {}))
+}

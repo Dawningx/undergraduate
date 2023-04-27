@@ -1,0 +1,93 @@
+package dpufalco
+
+
+import (
+	"net"
+//	"strconv"
+	"strings"
+	"fmt"
+
+	"github.com/falcosecurity/plugin-sdk-go/pkg/sdk/plugins/source"
+)
+
+const (
+	dpu_ip = "10.192.10.90"
+	dpu_port = "5000"
+)
+
+func (k *Plugin) Open(param string) (source.Instance, error) {
+	evtChan := make(chan source.PushEvent)
+
+	go func(evtChan chan source.PushEvent) {
+		address := dpu_ip + ":" + dpu_port
+		//addr, err := net.ResolveUDPAddr("udp", address)
+
+		listener, err := net.Listen("tcp", address)
+		// err = conn.SetReadBuffer(1024*1024*1024*4)
+		if err != nil {
+			evtChan <- source.PushEvent{Err: err}
+			return
+		}
+		
+		for {
+			fmt.Println("TCP Socket Start to Listen Successfully!")
+			conn, err := listener.Accept()
+			if err != nil {
+//				evtChan <- source.PushEvent{Err: err}
+			}
+
+			packet_cache := ""
+			var is_packet_cache bool
+			for {
+				buf := make([]byte, 2048)
+				// _, err2 := conn.Read(buf[:])
+				packets_len, err2 := conn.Read(buf[:])
+				if err2 != nil {
+//					evtChan <- source.PushEvent{Err: err2}
+					fmt.Println("End of a TCP socket, now listen for a new one.")
+					break
+				} 
+				if buf[0] == 0 { 
+					continue
+				} else {
+					packets := string(buf)
+					// fmt.Println(packets_len)
+					if buf[packets_len-1] != '\n' {
+						// Packet Split
+						// fmt.Println("Cache!")
+						is_packet_cache = true
+					} else {
+						is_packet_cache = false
+					}
+
+					data_slices := strings.Split(packets, "\n")
+					//fmt.Println(data_slices)
+					for index, value := range data_slices {
+						if index > 0 && (len(value)==0 || value[0] == 0) {
+							break
+						}
+						if is_packet_cache && index == len(data_slices)-1 {
+							packet_cache = value
+							break
+						}
+						if index == 0 {
+							value = packet_cache + value
+							packet_cache = ""
+						}
+						data := make([]byte, 256)
+						for i, v := range value {
+							if (i > 255) {
+								break
+							}
+							data[i] = byte(v)
+						}
+						// fmt.Println(string(data))
+						evtChan <- source.PushEvent{Data: data}
+					}
+				}
+			}
+		}
+	}(evtChan)
+	
+	return source.NewPushInstance(evtChan, source.WithInstanceClose(func() {}))
+}
